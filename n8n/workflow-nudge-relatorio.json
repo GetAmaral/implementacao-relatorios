@@ -1,0 +1,172 @@
+{
+  "name": "Nudge Relatório Mensal",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months",
+              "triggerAtDay": 1,
+              "triggerAtHour": 0,
+              "triggerAtMinute": 5
+            }
+          ]
+        }
+      },
+      "name": "trigger-mensal-nudge",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ldbdtakddxznfridsarn.supabase.co/rest/v1/rpc/mark_monthly_report_eligible",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYmR0YWtrZHh6bmZyaWRzYXJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzgxMTU3OCwiZXhwIjoyMDY5Mzg3NTc4fQ.sgZAmagW59WkngAIbI5QX5X05sfdmRF-PPsdxO1mwTE" },
+            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYmR0YWtrZHh6bmZyaWRzYXJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzgxMTU3OCwiZXhwIjoyMDY5Mzg3NTc4fQ.sgZAmagW59WkngAIbI5QX5X05sfdmRF-PPsdxO1mwTE" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{}",
+        "options": {}
+      },
+      "name": "Marcar Elegíveis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [240, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hkzgttizcfklxfafkzfl.supabase.co/rest/v1/log_total",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhremd0dGl6Y2ZrbHhmYWZremZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDIwODYwMSwiZXhwIjoyMDg1Nzg0NjAxfQ._DkH_9A7E1xe6WXOsWNKSWgsRcYJfxjhyTvpXFm23ok" },
+            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhremd0dGl6Y2ZrbHhmYWZremZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDIwODYwMSwiZXhwIjoyMDg1Nzg0NjAxfQ._DkH_9A7E1xe6WXOsWNKSWgsRcYJfxjhyTvpXFm23ok" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { user_id: 'system', acao: 'nudge_mensal_marcados', mensagem: $json + ' users marcados para nudge de relatório mensal', categoria: 'sistema' } }}",
+        "options": {}
+      },
+      "name": "Log Marcação",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 0]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nudge-relatorio",
+        "authentication": "basicAuth",
+        "options": {}
+      },
+      "name": "webhook-nudge",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 300],
+      "webhookId": "nudge-relatorio",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "f031WiARtCEWQuVs",
+          "name": "Basic Auth Google"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resume": "timeInterval",
+        "interval": 10,
+        "unit": "seconds"
+      },
+      "name": "Esperar Resposta",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst reportMonth = body.report_month; // \"2026-03-01\"\n\nconst mesesPt = [\n  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',\n  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'\n];\n\nconst date = new Date(reportMonth + 'T12:00:00Z');\nconst mesIdx = date.getMonth();\nconst ano = date.getFullYear();\nconst mesNome = mesesPt[mesIdx];\nconst mesFormatado = mesNome.charAt(0).toUpperCase() + mesNome.slice(1) + ' de ' + ano;\nconst mesId = ano + '-' + String(mesIdx + 1).padStart(2, '0');\n\nreturn [{\n  json: {\n    phone: body.phone,\n    nome: body.nome,\n    user_id: body.user_id,\n    mesFormatado,\n    mesId\n  }\n}];"
+      },
+      "name": "Formatar Mês",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v23.0/744582292082931/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  messaging_product: 'whatsapp',\n  to: $json.phone,\n  type: 'interactive',\n  interactive: {\n    type: 'button',\n    body: {\n      text: '📊 Seu resumo financeiro de ' + $json.mesFormatado + ' está pronto!\\n\\nDeseja receber o relatório completo em PDF?'\n    },\n    action: {\n      buttons: [\n        {\n          type: 'reply',\n          reply: { id: 'report_sim_' + $json.mesId, title: 'Sim, quero!' }\n        },\n        {\n          type: 'reply',\n          reply: { id: 'report_nao', title: 'Agora não' }\n        }\n      ]\n    }\n  }\n} }}",
+        "options": {}
+      },
+      "name": "Enviar Nudge WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "nuraEsunXXhjSpGT",
+          "name": "z-api marcio"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hkzgttizcfklxfafkzfl.supabase.co/rest/v1/log_total",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhremd0dGl6Y2ZrbHhmYWZremZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDIwODYwMSwiZXhwIjoyMDg1Nzg0NjAxfQ._DkH_9A7E1xe6WXOsWNKSWgsRcYJfxjhyTvpXFm23ok" },
+            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhremd0dGl6Y2ZrbHhmYWZremZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDIwODYwMSwiZXhwIjoyMDg1Nzg0NjAxfQ._DkH_9A7E1xe6WXOsWNKSWgsRcYJfxjhyTvpXFm23ok" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { user_id: $('Formatar Mês').item.json.user_id, acao: 'nudge_mensal_enviado', mensagem: 'Nudge relatório ' + $('Formatar Mês').item.json.mesFormatado + ' enviado', categoria: 'nudge' } }}",
+        "options": {}
+      },
+      "name": "Log Nudge Enviado",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 300]
+    }
+  ],
+  "connections": {
+    "trigger-mensal-nudge": { "main": [[{ "node": "Marcar Elegíveis", "type": "main", "index": 0 }]] },
+    "Marcar Elegíveis": { "main": [[{ "node": "Log Marcação", "type": "main", "index": 0 }]] },
+    "webhook-nudge": { "main": [[{ "node": "Esperar Resposta", "type": "main", "index": 0 }]] },
+    "Esperar Resposta": { "main": [[{ "node": "Formatar Mês", "type": "main", "index": 0 }]] },
+    "Formatar Mês": { "main": [[{ "node": "Enviar Nudge WhatsApp", "type": "main", "index": 0 }]] },
+    "Enviar Nudge WhatsApp": { "main": [[{ "node": "Log Nudge Enviado", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [
+    { "name": "nudge" },
+    { "name": "relatório" },
+    { "name": "mensal" }
+  ]
+}

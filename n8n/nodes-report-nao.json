@@ -1,0 +1,49 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "744582292082931",
+        "recipientPhoneNumber": "=+{{ $('trigger-whatsapp').item.json.messages[0].from }}",
+        "textBody": "=Sem problemas! Quando quiser, é só pedir \"gera meu relatório\". 📊",
+        "additionalFields": {}
+      },
+      "name": "Msg Nudge Dispensado",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 2,
+      "position": [-2080, 400],
+      "credentials": {
+        "whatsAppApi": {
+          "id": "OiRJwFsREONcxZdW",
+          "name": "WhatsApp account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hkzgttizcfklxfafkzfl.supabase.co/rest/v1/log_total",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhremd0dGl6Y2ZrbHhmYWZremZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDIwODYwMSwiZXhwIjoyMDg1Nzg0NjAxfQ._DkH_9A7E1xe6WXOsWNKSWgsRcYJfxjhyTvpXFm23ok" },
+            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhremd0dGl6Y2ZrbHhmYWZremZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDIwODYwMSwiZXhwIjoyMDg1Nzg0NjAxfQ._DkH_9A7E1xe6WXOsWNKSWgsRcYJfxjhyTvpXFm23ok" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  user_id: 'unknown',\n  acao: 'nudge_mensal_recusado',\n  mensagem: 'User recusou nudge de relatório mensal',\n  categoria: 'nudge'\n} }}",
+        "options": {}
+      },
+      "name": "Log Nudge Recusado",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-1840, 400]
+    }
+  ],
+  "connections": {
+    "Msg Nudge Dispensado": { "main": [[{ "node": "Log Nudge Recusado", "type": "main", "index": 0 }]] }
+  }
+}

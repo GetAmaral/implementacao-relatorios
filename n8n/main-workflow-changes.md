@@ -1,258 +1,146 @@
-# Alterações no Main Workflow
+# Alterações no Main Workflow — Passo a Passo com JSON
 
-**Workflow:** Main - Total Assistente (`hLwhn94JSHonwHzl`)
+**Workflow:** Main - Total Assistente
+
+Todos os nodes estão em arquivos JSON prontos para colar no N8N.
+Para colar: copiar o conteúdo do JSON → no N8N, clicar no canvas → Ctrl+V.
 
 ---
 
-## Parte A — Interceptar Button Reply do Nudge
+## Parte A — Interceptar Button Reply
 
-### 1. Desconectar `Edit Fields` → `If`
+### Passo 1: Desconectar Edit Fields → If
 
-- Localizar `Edit Fields` (posição [-2448, 528])
-- Localizar `If` que checa "Resuma para mim" (posição [-2096, 544])
-- Clicar na conexão entre eles → Delete
+- Achar o node `Edit Fields` e o node `If` (checa "Resuma para mim")
+- Clicar na linha de conexão entre eles → Delete
 
-### 2. Criar node `É Nudge Report?` (Switch)
+### Passo 2: Criar Switch "É Nudge Report?"
 
-- **Tipo:** Switch
-- **Nome:** É Nudge Report?
-- **Posição:** [-2280, 528]
-
-**Configuração:**
+Criar manualmente (Switch não cola bem via JSON por causa das rules):
 
 ```
+Tipo: Switch
+Nome: É Nudge Report?
+
 Mode: Rules
 
-Regra 0 (Output 0):
+Regra 0 (Output 0 = report_sim):
   Left Value:  {{ $('trigger-whatsapp').item.json.messages[0].interactive?.button_reply?.id || '' }}
   Operation:   starts with
   Right Value: report_sim_
 
-Regra 1 (Output 1):
+Regra 1 (Output 1 = report_nao):
   Left Value:  {{ $('trigger-whatsapp').item.json.messages[0].interactive?.button_reply?.id || '' }}
   Operation:   equals
   Right Value: report_nao
 
-Fallback Output: ON (gera output 2 = default)
+Fallback Output: ON (gera output 2)
 ```
 
-### 3. Conectar
+**Posicionar** entre `Edit Fields` e `If`, na mesma altura.
+
+### Passo 3: Conectar
 
 ```
 Edit Fields → É Nudge Report?
-É Nudge Report? [output 2 / default] → If ("Resuma para mim")
+É Nudge Report? [output 2 / fallback] → If ("Resuma para mim")
 ```
+
+Testar: o fluxo normal deve continuar funcionando para mensagens de texto.
 
 ---
 
-### 4. Criar caminho `report_sim` (Output 0) — 5 nodes
+### Passo 4: Colar nodes do caminho report_sim
 
-#### Node: `Buscar Profile Report`
-```
-Tipo: Supabase
-Credential: "Total Supabase" (ID: IKPzp0SrhjoEMH0z)
-Operation: Get
-Table: profiles
-Filter: phone = {{ $('trigger-whatsapp').item.json.messages[0].from }}
-```
+**Arquivo:** `nodes-report-sim.json`
 
-#### Node: `Calcular Período` (Code)
+1. Abrir o arquivo, copiar TODO o conteúdo
+2. No N8N, clicar no canvas vazio (área livre abaixo do fluxo)
+3. **Ctrl+V**
+4. Os 5 nodes aparecem já conectados entre si:
+
 ```
-Tipo: Code
-Language: JavaScript
+Buscar Profile Report → Calcular Período → Gerar Relatório Nudge → Msg Relatório Gerando → Log Nudge Aceito
 ```
 
-```javascript
-const buttonId = $('trigger-whatsapp').item.json
-  .messages[0].interactive.button_reply.id;
+5. **Conectar manualmente:** saída 0 do `É Nudge Report?` → entrada do `Buscar Profile Report`
+6. Posicionar os nodes abaixo do fluxo principal (linha de cima fica o fluxo normal, linha de baixo fica o report_sim)
 
-const monthStr = buttonId.replace('report_sim_', '');
-const [ano, mes] = monthStr.split('-').map(Number);
-
-const mesesPt = [
-  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
-  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
-];
-
-const pad2 = n => String(n).padStart(2, '0');
-const lastDay = new Date(ano, mes, 0).getDate();
-
-return [{
-  json: {
-    user_id: $('Buscar Profile Report').item.json.id,
-    phone: $('trigger-whatsapp').item.json.messages[0].from,
-    tipo: 'mensal',
-    label: mesesPt[mes - 1].charAt(0).toUpperCase() + mesesPt[mes - 1].slice(1) + ' de ' + ano,
-    startDate: ano + '-' + pad2(mes) + '-01T00:00:00-03:00',
-    endDate: ano + '-' + pad2(mes) + '-' + pad2(lastDay) + 'T23:59:59-03:00'
-  }
-}];
-```
-
-#### Node: `Gerar Relatório Nudge` (HTTP Request)
-```
-Tipo: HTTP Request
-Method: POST
-URL: http://76.13.172.17:5678/webhook/report
-Authentication: Generic Credential Type → HTTP Basic Auth
-Credential: "Basic Auth Google" (ID: f031WiARtCEWQuVs)
-
-Send Body: ON
-Specify Body: JSON
-JSON Body:
-={{ {
-  user_id: $json.user_id,
-  tipo: $json.tipo,
-  label: $json.label,
-  startDate: $json.startDate,
-  endDate: $json.endDate
-} }}
-```
-
-#### Node: `Msg Relatório Gerando` (WhatsApp)
-```
-Tipo: WhatsApp
-Credential: "WhatsApp account 2" (ID: OiRJwFsREONcxZdW)
-Operation: Send
-Phone Number ID: 744582292082931
-Recipient: +{{ $('trigger-whatsapp').item.json.messages[0].from }}
-Text: Gerando seu relatório de {{ $('Calcular Período').item.json.label }}... 📊
-```
-
-#### Node: `Log Nudge Aceito` (HTTP Request)
-```
-Tipo: HTTP Request
-Method: POST
-URL: https://hkzgttizcfklxfafkzfl.supabase.co/rest/v1/log_total
-
-Headers:
-  apikey = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhremd0dGl6Y2ZrbHhmYWZremZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDIwODYwMSwiZXhwIjoyMDg1Nzg0NjAxfQ._DkH_9A7E1xe6WXOsWNKSWgsRcYJfxjhyTvpXFm23ok
-  Authorization = Bearer (mesma key)
-  Content-Type = application/json
-  Prefer = return=minimal
-
-JSON Body:
-={{ {
-  user_id: $('Calcular Período').item.json.user_id,
-  acao: 'nudge_mensal_aceito',
-  mensagem: 'User aceitou nudge, relatório de ' + $('Calcular Período').item.json.label + ' solicitado',
-  categoria: 'nudge'
-} }}
-```
-
-#### Conexões:
-```
-É Nudge Report? [output 0] → Buscar Profile Report
-Buscar Profile Report → Calcular Período
-Calcular Período → Gerar Relatório Nudge
-Gerar Relatório Nudge → Msg Relatório Gerando
-Msg Relatório Gerando → Log Nudge Aceito
-```
+**Verificar credentials** (podem aparecer em vermelho após colar):
+- `Buscar Profile Report` → selecionar "Total Supabase"
+- `Gerar Relatório Nudge` → selecionar "Basic Auth Google"
+- `Msg Relatório Gerando` → selecionar "WhatsApp account 2"
 
 ---
 
-### 5. Criar caminho `report_nao` (Output 1) — 2 nodes
+### Passo 5: Colar nodes do caminho report_nao
 
-#### Node: `Msg Nudge Dispensado` (WhatsApp)
-```
-Tipo: WhatsApp
-Credential: "WhatsApp account 2" (ID: OiRJwFsREONcxZdW)
-Operation: Send
-Phone Number ID: 744582292082931
-Recipient: +{{ $('trigger-whatsapp').item.json.messages[0].from }}
-Text: Sem problemas! Quando quiser, é só pedir "gera meu relatório". 📊
-```
+**Arquivo:** `nodes-report-nao.json`
 
-#### Node: `Log Nudge Recusado` (HTTP Request)
-```
-Tipo: HTTP Request
-Method: POST
-URL: https://hkzgttizcfklxfafkzfl.supabase.co/rest/v1/log_total
+1. Copiar conteúdo do arquivo
+2. Ctrl+V no canvas
+3. Os 2 nodes aparecem conectados:
 
-Headers: (mesmas do Log Nudge Aceito)
-
-JSON Body:
-={{ {
-  user_id: 'unknown',
-  acao: 'nudge_mensal_recusado',
-  mensagem: 'User recusou nudge de relatório mensal',
-  categoria: 'nudge'
-} }}
 ```
-
-#### Conexões:
-```
-É Nudge Report? [output 1] → Msg Nudge Dispensado
 Msg Nudge Dispensado → Log Nudge Recusado
 ```
 
+4. **Conectar manualmente:** saída 1 do `É Nudge Report?` → entrada do `Msg Nudge Dispensado`
+5. Posicionar abaixo do caminho report_sim
+
+**Verificar credentials:**
+- `Msg Nudge Dispensado` → selecionar "WhatsApp account 2"
+
 ---
 
-## Parte B — Disparar Nudge em Paralelo com Premium User
+## Parte B — Disparar Nudge em Paralelo
 
-### 6. Criar node `Consume Nudge` (HTTP Request)
+### Passo 6: Colar nodes do nudge paralelo
 
-```
-Tipo: HTTP Request
-Method: POST
-URL: https://ldbdtakddxznfridsarn.supabase.co/rest/v1/rpc/consume_monthly_nudge
-Posição sugerida: [-80, 480]
+**Arquivo:** `nodes-nudge-paralelo.json`
 
-Headers:
-  apikey = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYmR0YWtrZHh6bmZyaWRzYXJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzgxMTU3OCwiZXhwIjoyMDY5Mzg3NTc4fQ.sgZAmagW59WkngAIbI5QX5X05sfdmRF-PPsdxO1mwTE
-  Authorization = Bearer (mesma key)
-  Content-Type = application/json
-
-JSON Body:
-={{ { p_user_id: $('setar_user').item.json.id_user } }}
-```
-
-### 7. Criar node `Nudge Consumido?` (IF)
+1. Copiar conteúdo do arquivo
+2. Ctrl+V no canvas
+3. Os 3 nodes aparecem conectados:
 
 ```
-Tipo: IF
-Posição: [128, 480]
-
-Condição:
-  Left Value: {{ $json.consumed }}
-  Operation: is true (boolean true)
+Consume Nudge → Nudge Consumido? → Disparar Nudge
 ```
 
-### 8. Criar node `Disparar Nudge` (HTTP Request)
+4. Posicionar à direita e abaixo do node `setar_user` (que já existe)
+
+**Verificar credentials:**
+- `Disparar Nudge` → selecionar "Basic Auth Google"
+
+### Passo 7: Conectar ao setar_user
+
+1. Localizar o node `setar_user` (já tem saída para `Premium User`)
+2. **NÃO REMOVER** a conexão existente para `Premium User`
+3. Arrastar uma **SEGUNDA linha** da bolinha de saída de `setar_user` para `Consume Nudge`
+4. Agora `setar_user` tem 2 saídas paralelas:
+   - → Premium User (existente)
+   - → Consume Nudge (nova)
+
+---
+
+## Resultado final no Main Workflow
 
 ```
-Tipo: HTTP Request
-Method: POST
-URL: http://76.13.172.17:5678/webhook/nudge-relatorio
-  ⚠️ VERIFICAR: o path pode mudar para UUID ao salvar o workflow.
-     Conferir o path real em "Nudge Relatório Mensal" → node webhook-nudge.
-Authentication: Generic Credential Type → HTTP Basic Auth
-Credential: "Basic Auth Google" (ID: f031WiARtCEWQuVs)
-Posição: [368, 440]
-
-Send Body: ON
-Specify Body: JSON
-
-JSON Body:
-={{ {
-  phone: $('setar_user').item.json.telefone,
-  nome: $('setar_user').item.json.nome,
-  user_id: $('setar_user').item.json.id_user,
-  report_month: $json.report_month
-} }}
+                    Edit Fields
+                        │
+                   É Nudge Report?
+                   /      |       \
+              output 0  output 1  output 2 (fallback)
+                 │         │          │
+          Buscar Profile  Msg Nudge   If ("Resuma para mim")
+                 │        Dispensado      │
+          Calcular         │          fluxo normal...
+          Período       Log Nudge        │
+                 │       Recusado    setar_user ──────────┐
+          Gerar                          │                │
+          Relatório                 Premium User    Consume Nudge
+                 │                  (existente)          │
+          Msg Gerando                              Nudge Consumido?
+                 │                                   │ true
+          Log Aceito                            Disparar Nudge
 ```
-
-### 9. Conectar branch nudge
-
-```
-setar_user → Consume Nudge          ← SEGUNDA saída (NÃO remover Premium User!)
-Consume Nudge → Nudge Consumido?
-Nudge Consumido? [true] → Disparar Nudge
-Nudge Consumido? [false] → (nada)
-```
-
-**Como adicionar segunda conexão:**
-1. Passar mouse sobre a bolinha de saída de `setar_user`
-2. A conexão para `Premium User` já existe — NÃO remover
-3. Arrastar NOVA linha da mesma bolinha para `Consume Nudge`
-4. Ambas executam em paralelo

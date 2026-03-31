@@ -1,0 +1,107 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "profiles",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone",
+              "keyValue": "={{ $('trigger-whatsapp').item.json.messages[0].from }}"
+            }
+          ]
+        }
+      },
+      "name": "Buscar Profile Report",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [-2080, 240],
+      "credentials": {
+        "supabaseApi": {
+          "id": "IKPzp0SrhjoEMH0z",
+          "name": "Total Supabase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const buttonId = $('trigger-whatsapp').item.json\n  .messages[0].interactive.button_reply.id;\n\nconst monthStr = buttonId.replace('report_sim_', '');\nconst [ano, mes] = monthStr.split('-').map(Number);\n\nconst mesesPt = [\n  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',\n  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'\n];\n\nconst pad2 = n => String(n).padStart(2, '0');\nconst lastDay = new Date(ano, mes, 0).getDate();\n\nreturn [{\n  json: {\n    user_id: $('Buscar Profile Report').item.json.id,\n    phone: $('trigger-whatsapp').item.json.messages[0].from,\n    tipo: 'mensal',\n    label: mesesPt[mes - 1].charAt(0).toUpperCase() + mesesPt[mes - 1].slice(1) + ' de ' + ano,\n    startDate: ano + '-' + pad2(mes) + '-01T00:00:00-03:00',\n    endDate: ano + '-' + pad2(mes) + '-' + pad2(lastDay) + 'T23:59:59-03:00'\n  }\n}];"
+      },
+      "name": "Calcular Período",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1840, 240]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://totalassistente.com.br/webhook/report",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  user_id: $json.user_id,\n  tipo: $json.tipo,\n  label: $json.label,\n  startDate: $json.startDate,\n  endDate: $json.endDate\n} }}",
+        "options": {}
+      },
+      "name": "Gerar Relatório Nudge",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-1600, 240],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "f031WiARtCEWQuVs",
+          "name": "Basic Auth Google"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "744582292082931",
+        "recipientPhoneNumber": "=+{{ $('trigger-whatsapp').item.json.messages[0].from }}",
+        "textBody": "=Gerando seu relatório de {{ $('Calcular Período').item.json.label }}... 📊",
+        "additionalFields": {}
+      },
+      "name": "Msg Relatório Gerando",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 2,
+      "position": [-1360, 240],
+      "credentials": {
+        "whatsAppApi": {
+          "id": "OiRJwFsREONcxZdW",
+          "name": "WhatsApp account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hkzgttizcfklxfafkzfl.supabase.co/rest/v1/log_total",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhremd0dGl6Y2ZrbHhmYWZremZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDIwODYwMSwiZXhwIjoyMDg1Nzg0NjAxfQ._DkH_9A7E1xe6WXOsWNKSWgsRcYJfxjhyTvpXFm23ok" },
+            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhremd0dGl6Y2ZrbHhmYWZremZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDIwODYwMSwiZXhwIjoyMDg1Nzg0NjAxfQ._DkH_9A7E1xe6WXOsWNKSWgsRcYJfxjhyTvpXFm23ok" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  user_id: $('Calcular Período').item.json.user_id,\n  acao: 'nudge_mensal_aceito',\n  mensagem: 'User aceitou nudge, relatório de ' + $('Calcular Período').item.json.label + ' solicitado',\n  categoria: 'nudge'\n} }}",
+        "options": {}
+      },
+      "name": "Log Nudge Aceito",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-1120, 240]
+    }
+  ],
+  "connections": {
+    "Buscar Profile Report": { "main": [[{ "node": "Calcular Período", "type": "main", "index": 0 }]] },
+    "Calcular Período": { "main": [[{ "node": "Gerar Relatório Nudge", "type": "main", "index": 0 }]] },
+    "Gerar Relatório Nudge": { "main": [[{ "node": "Msg Relatório Gerando", "type": "main", "index": 0 }]] },
+    "Msg Relatório Gerando": { "main": [[{ "node": "Log Nudge Aceito", "type": "main", "index": 0 }]] }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ldbdtakddxznfridsarn.supabase.co/rest/v1/rpc/consume_monthly_nudge",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYmR0YWtrZHh6bmZyaWRzYXJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzgxMTU3OCwiZXhwIjoyMDY5Mzg3NTc4fQ.sgZAmagW59WkngAIbI5QX5X05sfdmRF-PPsdxO1mwTE" },
+            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYmR0YWtrZHh6bmZyaWRzYXJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzgxMTU3OCwiZXhwIjoyMDY5Mzg3NTc4fQ.sgZAmagW59WkngAIbI5QX5X05sfdmRF-PPsdxO1mwTE" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { p_user_id: $('setar_user').item.json.id_user } }}",
+        "options": {}
+      },
+      "name": "Consume Nudge",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-80, 480]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "nudge-consumed-check",
+              "leftValue": "={{ $json.consumed }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Nudge Consumido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [160, 480]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://totalassistente.com.br/webhook/nudge-relatorio",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  phone: $('setar_user').item.json.telefone,\n  nome: $('setar_user').item.json.nome,\n  user_id: $('setar_user').item.json.id_user,\n  report_month: $json.report_month\n} }}",
+        "options": {}
+      },
+      "name": "Disparar Nudge",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [400, 440],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "f031WiARtCEWQuVs",
+          "name": "Basic Auth Google"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Consume Nudge": { "main": [[{ "node": "Nudge Consumido?", "type": "main", "index": 0 }]] },
+    "Nudge Consumido?": { "main": [[{ "node": "Disparar Nudge", "type": "main", "index": 0 }]] }
+  }
+}

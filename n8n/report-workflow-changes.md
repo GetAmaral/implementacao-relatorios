@@ -1,44 +1,27 @@
-# Alteração no Report Workflow
+# Alteração no Report Workflow — Passo a Passo
 
-**Workflow:** Relatórios Mensais-Semanais (`0erjX5QpI9IJEmdi`)
-
-**Mudança:** Adicionar 1 node entre `buscar-perfil` e `Update a row8` para limpar a flag de nudge quando um relatório é gerado por qualquer caminho (manual ou nudge).
+**Workflow:** Relatórios Mensais-Semanais
 
 ---
 
-## 1. Desconectar
+## Passo 1: Colar o node
 
-```
-buscar-perfil (posição [304, 1264])  →✂️→  Update a row8 (posição [432, 1264])
-```
+**Arquivo:** `nodes-limpar-flag-report.json`
 
-## 2. Criar node `Limpar Nudge Flag`
+1. Abrir o workflow "Relatórios Mensais-Semanais" no N8N
+2. Copiar o conteúdo do arquivo JSON
+3. Ctrl+V no canvas
+4. O node `Limpar Nudge Flag` aparece
 
-```
-Tipo: HTTP Request
-Nome: Limpar Nudge Flag
-Posição sugerida: [368, 1264]
+## Passo 2: Desconectar
 
-Method: POST
-URL: https://ldbdtakddxznfridsarn.supabase.co/rest/v1/rpc/clear_nudge_on_report
+- Localizar `buscar-perfil` e `Update a row8` (ficam perto, na linha do webhook-report)
+- Deletar a conexão entre eles
 
-Send Headers: ON
-Headers:
-  apikey = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYmR0YWtrZHh6bmZyaWRzYXJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzgxMTU3OCwiZXhwIjoyMDY5Mzg3NTc4fQ.sgZAmagW59WkngAIbI5QX5X05sfdmRF-PPsdxO1mwTE
-  Authorization = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYmR0YWtrZHh6bmZyaWRzYXJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzgxMTU3OCwiZXhwIjoyMDY5Mzg3NTc4fQ.sgZAmagW59WkngAIbI5QX5X05sfdmRF-PPsdxO1mwTE
-  Content-Type = application/json
-
-Send Body: ON
-Specify Body: JSON
-
-JSON Body:
-={{ { p_user_id: $('webhook-report').item.json.body.user_id } }}
-```
-
-## 3. Reconectar
+## Passo 3: Reconectar
 
 ```
 buscar-perfil → Limpar Nudge Flag → Update a row8
 ```
 
-O restante do fluxo (buscar-gastos → gerar-html → gotenberg → upload → enviar) permanece inalterado.
+Pronto. Agora quando qualquer relatório for gerado (manual ou via nudge), a flag é limpa automaticamente.

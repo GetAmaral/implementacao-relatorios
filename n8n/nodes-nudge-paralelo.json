@@ -7,8 +7,8 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYmR0YWtrZHh6bmZyaWRzYXJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzgxMTU3OCwiZXhwIjoyMDY5Mzg3NTc4fQ.sgZAmagW59WkngAIbI5QX5X05sfdmRF-PPsdxO1mwTE" },
-            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYmR0YWtrZHh6bmZyaWRzYXJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzgxMTU3OCwiZXhwIjoyMDY5Mzg3NTc4fQ.sgZAmagW59WkngAIbI5QX5X05sfdmRF-PPsdxO1mwTE" },
+            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYmR0YWtkZHh6bmZyaWRzYXJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzgxMTU3OCwiZXhwIjoyMDY5Mzg3NTc4fQ.EA3vHa296JSuneN_yAK1V95QkcwtAPoEwFbplksisGw" },
+            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYmR0YWtkZHh6bmZyaWRzYXJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzgxMTU3OCwiZXhwIjoyMDY5Mzg3NTc4fQ.EA3vHa296JSuneN_yAK1V95QkcwtAPoEwFbplksisGw" },
             { "name": "Content-Type", "value": "application/json" }
           ]
         },
@@ -20,7 +20,7 @@
       "name": "Consume Nudge",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [-80, 480]
+      "position": [1184, 400]
     },
     {
       "parameters": {
@@ -50,7 +50,7 @@
       "name": "Nudge Consumido?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [160, 480]
+      "position": [1424, 400]
     },
     {
       "parameters": {
@@ -66,11 +66,11 @@
       "name": "Disparar Nudge",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [400, 440],
+      "position": [1664, 360],
       "credentials": {
         "httpBasicAuth": {
-          "id": "f031WiARtCEWQuVs",
-          "name": "Basic Auth Google"
+          "id": "fSx1ApZPcITxgUNE",
+          "name": "Avelum Credential"
         }
       }
     }

@@ -10,11 +10,11 @@
       },
       "name": "Msg Nudge Dispensado",
       "type": "n8n-nodes-base.whatsApp",
-      "typeVersion": 2,
-      "position": [-2080, 400],
+      "typeVersion": 1,
+      "position": [-600, 960],
       "credentials": {
         "whatsAppApi": {
-          "id": "OiRJwFsREONcxZdW",
+          "id": "j0RGyMFfqZfWpCBu",
           "name": "WhatsApp account 2"
         }
       }
@@ -40,7 +40,7 @@
       "name": "Log Nudge Recusado",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [-1840, 400]
+      "position": [-360, 960]
     }
   ],
   "connections": {

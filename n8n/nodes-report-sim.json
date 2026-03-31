@@ -16,10 +16,10 @@
       "name": "Buscar Profile Report",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
-      "position": [-2080, 240],
+      "position": [-600, 800],
       "credentials": {
         "supabaseApi": {
-          "id": "IKPzp0SrhjoEMH0z",
+          "id": "kQkN5PrZm2GihQfS",
           "name": "Total Supabase"
         }
       }
@@ -31,7 +31,7 @@
       "name": "Calcular Período",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-1840, 240]
+      "position": [-360, 800]
     },
     {
       "parameters": {
@@ -47,11 +47,11 @@
       "name": "Gerar Relatório Nudge",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [-1600, 240],
+      "position": [-120, 800],
       "credentials": {
         "httpBasicAuth": {
-          "id": "f031WiARtCEWQuVs",
-          "name": "Basic Auth Google"
+          "id": "fSx1ApZPcITxgUNE",
+          "name": "Avelum Credential"
         }
       }
     },
@@ -65,11 +65,11 @@
       },
       "name": "Msg Relatório Gerando",
       "type": "n8n-nodes-base.whatsApp",
-      "typeVersion": 2,
-      "position": [-1360, 240],
+      "typeVersion": 1,
+      "position": [120, 800],
       "credentials": {
         "whatsAppApi": {
-          "id": "OiRJwFsREONcxZdW",
+          "id": "j0RGyMFfqZfWpCBu",
           "name": "WhatsApp account 2"
         }
       }
@@ -95,7 +95,7 @@
       "name": "Log Nudge Aceito",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [-1120, 240]
+      "position": [360, 800]
     }
   ],
   "connections": {

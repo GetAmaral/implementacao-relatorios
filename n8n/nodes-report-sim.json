@@ -77,25 +77,31 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://hkzgttizcfklxfafkzfl.supabase.co/rest/v1/log_total",
+        "url": "https://ldbdtakddxznfridsarn.supabase.co/rest/v1/execution_log",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhremd0dGl6Y2ZrbHhmYWZremZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDIwODYwMSwiZXhwIjoyMDg1Nzg0NjAxfQ._DkH_9A7E1xe6WXOsWNKSWgsRcYJfxjhyTvpXFm23ok" },
-            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhremd0dGl6Y2ZrbHhmYWZremZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDIwODYwMSwiZXhwIjoyMDg1Nzg0NjAxfQ._DkH_9A7E1xe6WXOsWNKSWgsRcYJfxjhyTvpXFm23ok" },
             { "name": "Content-Type", "value": "application/json" },
             { "name": "Prefer", "value": "return=minimal" }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ {\n  user_id: $('Calcular Período').item.json.user_id,\n  acao: 'nudge_mensal_aceito',\n  mensagem: 'User aceitou nudge, relatório de ' + $('Calcular Período').item.json.label + ' solicitado',\n  categoria: 'nudge'\n} }}",
+        "jsonBody": "={{ {\n  user_phone: $('trigger-whatsapp').item.json.messages[0].from,\n  user_id: $('Calcular Período').item.json.user_id,\n  action_type: 'nudge_mensal_aceito',\n  action_input: JSON.stringify({ mes: $('Calcular Período').item.json.label }),\n  action_success: true,\n  source_workflow: 'main',\n  event_type: 'action_executed',\n  status: 'completed'\n} }}",
         "options": {}
       },
       "name": "Log Nudge Aceito",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [360, 800]
+      "position": [360, 800],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "SELECIONAR_SUPABASE_SR",
+          "name": "Supabase SR"
+        }
+      }
     }
   ],
   "connections": {

@@ -23,11 +23,11 @@
       "parameters": {
         "method": "POST",
         "url": "https://ldbdtakddxznfridsarn.supabase.co/rest/v1/rpc/mark_monthly_report_eligible",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYmR0YWtrZHh6bmZyaWRzYXJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzgxMTU3OCwiZXhwIjoyMDY5Mzg3NTc4fQ.sgZAmagW59WkngAIbI5QX5X05sfdmRF-PPsdxO1mwTE" },
-            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYmR0YWtrZHh6bmZyaWRzYXJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzgxMTU3OCwiZXhwIjoyMDY5Mzg3NTc4fQ.sgZAmagW59WkngAIbI5QX5X05sfdmRF-PPsdxO1mwTE" },
             { "name": "Content-Type", "value": "application/json" }
           ]
         },
@@ -39,30 +39,42 @@
       "name": "Marcar Elegíveis",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [240, 0]
+      "position": [240, 0],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "SELECIONAR_SUPABASE_SR",
+          "name": "Supabase SR"
+        }
+      }
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://hkzgttizcfklxfafkzfl.supabase.co/rest/v1/log_total",
+        "url": "https://ldbdtakddxznfridsarn.supabase.co/rest/v1/execution_log",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhremd0dGl6Y2ZrbHhmYWZremZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDIwODYwMSwiZXhwIjoyMDg1Nzg0NjAxfQ._DkH_9A7E1xe6WXOsWNKSWgsRcYJfxjhyTvpXFm23ok" },
-            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhremd0dGl6Y2ZrbHhmYWZremZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDIwODYwMSwiZXhwIjoyMDg1Nzg0NjAxfQ._DkH_9A7E1xe6WXOsWNKSWgsRcYJfxjhyTvpXFm23ok" },
             { "name": "Content-Type", "value": "application/json" },
             { "name": "Prefer", "value": "return=minimal" }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { user_id: 'system', acao: 'nudge_mensal_marcados', mensagem: $json + ' users marcados para nudge de relatório mensal', categoria: 'sistema' } }}",
+        "jsonBody": "={{ {\n  action_type: 'nudge_mensal_marcados',\n  action_input: JSON.stringify({ users_marcados: $json }),\n  action_success: true,\n  source_workflow: 'nudge-relatorio',\n  event_type: 'action_executed',\n  status: 'completed'\n} }}",
         "options": {}
       },
       "name": "Log Marcação",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [480, 0]
+      "position": [480, 0],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "SELECIONAR_SUPABASE_SR",
+          "name": "Supabase SR"
+        }
+      }
     },
     {
       "parameters": {
@@ -78,8 +90,8 @@
       "webhookId": "nudge-relatorio",
       "credentials": {
         "httpBasicAuth": {
-          "id": "f031WiARtCEWQuVs",
-          "name": "Basic Auth Google"
+          "id": "fSx1ApZPcITxgUNE",
+          "name": "Avelum Credential"
         }
       }
     },
@@ -96,7 +108,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst reportMonth = body.report_month; // \"2026-03-01\"\n\nconst mesesPt = [\n  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',\n  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'\n];\n\nconst date = new Date(reportMonth + 'T12:00:00Z');\nconst mesIdx = date.getMonth();\nconst ano = date.getFullYear();\nconst mesNome = mesesPt[mesIdx];\nconst mesFormatado = mesNome.charAt(0).toUpperCase() + mesNome.slice(1) + ' de ' + ano;\nconst mesId = ano + '-' + String(mesIdx + 1).padStart(2, '0');\n\nreturn [{\n  json: {\n    phone: body.phone,\n    nome: body.nome,\n    user_id: body.user_id,\n    mesFormatado,\n    mesId\n  }\n}];"
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst reportMonth = body.report_month;\n\nconst mesesPt = [\n  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',\n  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'\n];\n\nconst date = new Date(reportMonth + 'T12:00:00Z');\nconst mesIdx = date.getMonth();\nconst ano = date.getFullYear();\nconst mesNome = mesesPt[mesIdx];\nconst mesFormatado = mesNome.charAt(0).toUpperCase() + mesNome.slice(1) + ' de ' + ano;\nconst mesId = ano + '-' + String(mesIdx + 1).padStart(2, '0');\n\nreturn [{\n  json: {\n    phone: body.phone,\n    nome: body.nome,\n    user_id: body.user_id,\n    mesFormatado,\n    mesId\n  }\n}];"
       },
       "name": "Formatar Mês",
       "type": "n8n-nodes-base.code",
@@ -126,33 +138,39 @@
       "position": [720, 300],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "nuraEsunXXhjSpGT",
-          "name": "z-api marcio"
+          "id": "TDDrQvr1s0RxXTTC",
+          "name": "WhatsApp Header Auth"
         }
       }
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://hkzgttizcfklxfafkzfl.supabase.co/rest/v1/log_total",
+        "url": "https://ldbdtakddxznfridsarn.supabase.co/rest/v1/execution_log",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhremd0dGl6Y2ZrbHhmYWZremZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDIwODYwMSwiZXhwIjoyMDg1Nzg0NjAxfQ._DkH_9A7E1xe6WXOsWNKSWgsRcYJfxjhyTvpXFm23ok" },
-            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhremd0dGl6Y2ZrbHhmYWZremZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDIwODYwMSwiZXhwIjoyMDg1Nzg0NjAxfQ._DkH_9A7E1xe6WXOsWNKSWgsRcYJfxjhyTvpXFm23ok" },
             { "name": "Content-Type", "value": "application/json" },
             { "name": "Prefer", "value": "return=minimal" }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { user_id: $('Formatar Mês').item.json.user_id, acao: 'nudge_mensal_enviado', mensagem: 'Nudge relatório ' + $('Formatar Mês').item.json.mesFormatado + ' enviado', categoria: 'nudge' } }}",
+        "jsonBody": "={{ {\n  user_phone: $('Formatar Mês').item.json.phone,\n  user_id: $('Formatar Mês').item.json.user_id,\n  action_type: 'nudge_mensal_enviado',\n  action_input: JSON.stringify({ mes: $('Formatar Mês').item.json.mesFormatado }),\n  action_success: true,\n  source_workflow: 'nudge-relatorio',\n  event_type: 'action_executed',\n  status: 'completed'\n} }}",
         "options": {}
       },
       "name": "Log Nudge Enviado",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [960, 300]
+      "position": [960, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "SELECIONAR_SUPABASE_SR",
+          "name": "Supabase SR"
+        }
+      }
     }
   ],
   "connections": {

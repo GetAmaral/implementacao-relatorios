@@ -4,11 +4,11 @@
       "parameters": {
         "method": "POST",
         "url": "https://ldbdtakddxznfridsarn.supabase.co/rest/v1/rpc/clear_nudge_on_report",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYmR0YWtrZHh6bmZyaWRzYXJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzgxMTU3OCwiZXhwIjoyMDY5Mzg3NTc4fQ.sgZAmagW59WkngAIbI5QX5X05sfdmRF-PPsdxO1mwTE" },
-            { "name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkYmR0YWtrZHh6bmZyaWRzYXJuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzgxMTU3OCwiZXhwIjoyMDY5Mzg3NTc4fQ.sgZAmagW59WkngAIbI5QX5X05sfdmRF-PPsdxO1mwTE" },
             { "name": "Content-Type", "value": "application/json" }
           ]
         },
@@ -20,7 +20,13 @@
       "name": "Limpar Nudge Flag",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [368, 1264]
+      "position": [368, 1264],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "SELECIONAR_SUPABASE_SR",
+          "name": "Supabase SR"
+        }
+      }
     }
   ],
   "connections": {}

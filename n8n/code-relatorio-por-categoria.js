@@ -193,7 +193,7 @@ function gerarSecaoCategoria(cat, tipo) {
 // ========================================
 // MONTAR HTML
 // ========================================
-const logoUrl = 'https://totalassistente.com.br/assets/logo-dark-DnpWvJkw.png';
+const logoUrl = 'https://totalassistente.com.br/assets/logo-default-DjWkKb4r.webp';
 
 const secoesSaidas = categoriasOrdenadas.map(c => gerarSecaoCategoria(c, 'saida')).join('');
 const secoesEntradas = entradasOrdenadas.map(c => gerarSecaoCategoria(c, 'entrada')).join('');
